@@ -61,6 +61,7 @@ jobs:
         slot-name: ${{ env.SLOTNAME }}
     
     - name: Create completed comment
+      if: github.event.issue.number != ''
       uses: peter-evans/create-or-update-comment@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
