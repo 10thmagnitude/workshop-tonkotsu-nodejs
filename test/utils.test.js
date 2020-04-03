@@ -35,8 +35,8 @@ describe("Utils", function() {
   });
 
   describe("makeHeading", function() {
-    it("wraps the string in a H1", function() {
-      assert.equal(utils.makeHeading("Title"), "<h1>TitleBug</h1>");
+    it("wraps the string in a H1 test", function() {
+      assert.equal(utils.makeHeading("Title"), "<h1>Title</h1>");
     });
 
     // it("trims any excess padding", function() {
