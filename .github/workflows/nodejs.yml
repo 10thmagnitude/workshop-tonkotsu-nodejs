@@ -3,6 +3,9 @@
 
 name: Node.js CI
 
+env:
+  NODEVERSION: 12.15.0
+
 on:
   push:
     branches: 
@@ -15,16 +18,12 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [12.x]
-
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js ${{ env.NODEVERSION }}
       uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: ${{ env.NODEVERSION }}
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
@@ -40,7 +39,7 @@ jobs:
       run: |
         az group create -n gh-demo -l westus2
         az appservice plan create -g gh-demo -n gh-demo-plan --sku S1
-        az webapp create -g gh-demo -p gh-demo-plan -n gh-demo-app --runtime "node|10.15"
+        az webapp create -g gh-demo -p gh-demo-plan -n gh-demo-app --runtime "node|${{ env.NODEVERSION }}"
         az webapp deployment slot create -g gh-demo -n gh-demo-app -s staging
     
     - name: Deploy code to slot
