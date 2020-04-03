@@ -43,14 +43,14 @@ jobs:
         az webapp create -g gh-demo -p gh-demo-plan -n gh-demo-app --runtime "node|10.15"
         az webapp deployment slot create -g gh-demo -n gh-demo-app -s staging
     
-    - run: |
-        if: github.ref == 'refs/heads/master'
-        echo ${{ github.ref }}
+    - name: Set slot (production)
+      if: github.ref == 'refs/heads/master'
+      run: |
         echo ::set-env name=SLOTNAME::"production"
     
-    - run: |
-        if: github.ref != 'refs/heads/master'
-        echo ${{ github.ref }}
+    - name: Set slot (staging)
+      if: github.ref != 'refs/heads/master'
+      run: |
         echo ::set-env name=SLOTNAME::"staging"
     
     - name: Deploy code to slot
