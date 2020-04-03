@@ -35,7 +35,7 @@ describe("Utils", function() {
   });
 
   describe("makeHeading", function() {
-    it("wraps the string in a H1", function() {
+    it("wraps the string in a H1 test", function() {
       assert.equal(utils.makeHeading("Title"), "<h1>Title</h1>");
     });
 
