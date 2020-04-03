@@ -17,7 +17,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x]
+        node-version: [10.15]
 
     steps:
     - uses: actions/checkout@v2
@@ -40,15 +40,24 @@ jobs:
       run: |
         az group create -n gh-demo -l westus2
         az appservice plan create -g gh-demo -n gh-demo-plan --sku S1
-        az webapp create -g gh-demo -p gh-demo-plan -n gh-demo-app
+        az webapp create -g gh-demo -p gh-demo-plan -n gh-demo-app --runtime "node|10.15"
         az webapp deployment slot create -g gh-demo -n gh-demo-app -s staging
     
     - run: |
+        if: github.ref == 'refs/heads/master'
         echo ${{ github.ref }}
         echo ::set-env name=SLOTNAME::"production"
     
-    - name: Deploy code to staging slot
+    - run: |
+        if: github.ref != 'refs/heads/master'
+        echo ${{ github.ref }}
+        echo ::set-env name=SLOTNAME::"staging"
+    
+    - name: Deploy code to slot
+      id: deploy_step
       uses: Azure/webapps-deploy@v2
       with:
         app-name: gh-demo-app
         slot-name: ${{ env.SLOTNAME }}
+    
+    - run: echo ${{ steps.deploy_step.outputs.webapp-url }}
