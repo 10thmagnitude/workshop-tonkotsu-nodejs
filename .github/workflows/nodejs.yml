@@ -43,22 +43,16 @@ jobs:
         az webapp create -g gh-demo -p gh-demo-plan -n gh-demo-app --runtime "node|10.15"
         az webapp deployment slot create -g gh-demo -n gh-demo-app -s staging
     
-    - name: Set slot (production)
-      if: github.ref == 'refs/heads/master'
-      run: |
-        echo ::set-env name=SLOTNAME::"production"
-    
-    - name: Set slot (staging)
-      if: github.ref != 'refs/heads/master'
-      run: |
-        echo ::set-env name=SLOTNAME::"staging"
-    
     - name: Deploy code to slot
       id: deploy_step
       uses: Azure/webapps-deploy@v2
       with:
         app-name: gh-demo-app
-        slot-name: ${{ env.SLOTNAME }}
+        slot-name: staging
+        
+    - name: Swap slot
+      if: github.ref != 'refs/heads/master'
+      run: az webapp deployment slot swap -g gh-demo -n gh-demo-app --slot staging --target-slot production  
     
     - name: Create completed comment
       if: github.event.issue.number != ''
