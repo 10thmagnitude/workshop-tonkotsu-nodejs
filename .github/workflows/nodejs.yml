@@ -60,4 +60,13 @@ jobs:
         app-name: gh-demo-app
         slot-name: ${{ env.SLOTNAME }}
     
-    - run: echo ${{ steps.deploy_step.outputs.webapp-url }}
+    - name: Create completed comment
+      uses: peter-evans/create-or-update-comment@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        issue-number: ${{ github.event.issue.number }}
+        body: |
+          Hey, @${{ github.event.comment.user.login }}!
+          :tada: Deployment to ${{ env.SLOTNAME }} completed! :tada:
+          You should be able to browse it at [${{ steps.deploy_step.outputs.webapp-url }}](${{ steps.deploy_step.outputs.webapp-url }}). Happy testing!
+
