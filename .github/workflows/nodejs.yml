@@ -3,6 +3,9 @@
 
 name: Node.js CI
 
+env:
+  NODEVERSION: 12.15.0
+
 on:
   push:
     branches: 
@@ -15,18 +18,50 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [12.x]
-
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js ${{ env.NODEVERSION }}
       uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: ${{ env.NODEVERSION }}
     - run: npm ci
     - run: npm run build --if-present
     - run: npm test
       env:
         CI: true
+    
+    - name: Azure Login
+      uses: Azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Create RG and web app
+      run: |
+        az group create -n gh-demo -l westus2
+        az appservice plan create -g gh-demo -n gh-demo-plan --sku S1
+        az webapp create -g gh-demo -p gh-demo-plan -n gh-demo-app --runtime "node|${{ env.NODEVERSION }}"
+        az webapp deployment slot create -g gh-demo -n gh-demo-app -s staging
+    
+    - name: Deploy code to slot
+      if: github.ref != 'refs/heads/master'
+      id: deploy_step
+      uses: Azure/webapps-deploy@v2
+      with:
+        app-name: gh-demo-app
+        slot-name: staging
+        
+    - name: Swap slot
+      if: github.ref == 'refs/heads/master'
+      run: az webapp deployment slot swap -g gh-demo -n gh-demo-app --slot staging --target-slot production  
+    
+    - name: Create completed comment
+      if: github.event.issue.number != ''
+      uses: peter-evans/create-or-update-comment@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        issue-number: ${{ github.event.issue.number }}
+        body: |
+          Hey, @${{ github.event.comment.user.login }}!
+          :tada: Deployment to ${{ env.SLOTNAME }} completed! :tada:
+          You should be able to browse it at [${{ steps.deploy_step.outputs.webapp-url }}](${{ steps.deploy_step.outputs.webapp-url }}). Happy testing!
+
