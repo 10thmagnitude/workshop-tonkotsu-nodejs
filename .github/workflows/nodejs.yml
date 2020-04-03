@@ -30,3 +30,25 @@ jobs:
     - run: npm test
       env:
         CI: true
+    
+    - name: Azure Login
+      uses: Azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Create RG and web app
+      run: |
+        az group create -n gh-demo -l westus2
+        az appservice plan create -g gh-demo -n gh-demo-plan --sku S1
+        az webapp create -g gh-demo -p gh-demo-plan -n gh-demo-app
+        az webapp deployment slot create -g gh-demo -n gh-demo-app -s staging
+    
+    - run: |
+        echo ${{ github.ref }}
+        echo ::set-env name=SLOTNAME::"production"
+    
+    - name: Deploy code to staging slot
+      uses: Azure/webapps-deploy@v2
+      with:
+        app-name: gh-demo-app
+        slot-name: ${{ env.SLOTNAME }}
