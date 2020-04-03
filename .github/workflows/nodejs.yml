@@ -44,6 +44,7 @@ jobs:
         az webapp deployment slot create -g gh-demo -n gh-demo-app -s staging
     
     - name: Deploy code to slot
+      if: github.ref != 'refs/heads/master'
       id: deploy_step
       uses: Azure/webapps-deploy@v2
       with:
@@ -51,7 +52,7 @@ jobs:
         slot-name: staging
         
     - name: Swap slot
-      if: github.ref != 'refs/heads/master'
+      if: github.ref == 'refs/heads/master'
       run: az webapp deployment slot swap -g gh-demo -n gh-demo-app --slot staging --target-slot production  
     
     - name: Create completed comment
