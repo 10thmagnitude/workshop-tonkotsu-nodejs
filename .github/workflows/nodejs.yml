@@ -59,6 +59,7 @@ jobs:
       with:
         app-name: gh-demo-app
         slot-name: ${{ env.SLOTNAME }}
+        startup-command: npm run start
     
     - name: Create completed comment
       uses: peter-evans/create-or-update-comment@v1
